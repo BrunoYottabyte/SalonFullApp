@@ -35,7 +35,7 @@ router.post("/", async (req, res) => {
           holder_document: contaBancaria.cpfCnpj,
           bank: contaBancaria.banco,
           branch_number: contaBancaria.agencia,
-          branch_check_digit: "6",
+          // branch_check_digit: "6",
           account_number: contaBancaria.numero,
           account_check_digit: contaBancaria.dv,
           type: contaBancaria.tipo,
@@ -176,35 +176,37 @@ router.post("/filter", async (req, res) => {
 router.get("/salao/:salaoId", async (req, res) => {
   try {
     const { salaoId } = req.params;
-    let listaColaboradores = []
+    let listaColaboradores = [];
     //RECUPERAR VINCULOS
     const salaoColaboradores = await SalaoColaborador.find({
       salaoId,
       status: { $ne: "E" },
-    }).populate({
-      path: 'colaboradorId', select: '-senha'
-    }).select('colaboradorId dataCadastro status')
+    })
+      .populate({
+        path: "colaboradorId",
+        select: "-senha",
+      })
+      .select("colaboradorId dataCadastro status");
     // .populate('colaboradorId').select('colaboradorId dataCadastro status')
 
-    for (let vinculo of salaoColaboradores){
+    for (let vinculo of salaoColaboradores) {
       const especialidades = await ColaboradorServico.find({
-        colaboradorId: vinculo.colaboradorId._id
-      })
+        colaboradorId: vinculo.colaboradorId._id,
+      });
 
-      listaColaboradores.push({...vinculo._doc, especialidades})
+      listaColaboradores.push({ ...vinculo._doc, especialidades });
     }
 
-   res.json({
+    res.json({
       error: false,
       colaboradores: listaColaboradores.map((vinculo) => ({
         ...vinculo.colaboradorId._doc,
         vinculoId: vinculo._id,
         vinculo: vinculo.status,
         especialidades: vinculo.especialidades,
-        dataCadastro: vinculo.dataCadastro
+        dataCadastro: vinculo.dataCadastro,
       })),
     });
-   
   } catch (err) {
     res.json({ error: true, message: err.message });
   }
