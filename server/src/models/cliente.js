@@ -16,13 +16,7 @@ const cliente = new schema({
         default: null
     },
     telefone: String,
-    endereco: {
-        cidade: String,
-        uf: String,
-        cep: String,
-        numero: String,
-        pais: String
-    },
+    area: String,
     dataNascimento: {
         type: String, // YYYY-MM-DD
         required: true,
@@ -48,14 +42,25 @@ const cliente = new schema({
             type: String,
             required: true,
         },
+        docType: {
+            type: String,
+            enum: ['CPF', 'CNPJ', 'PASSPORT'],
+            required: true,
+        }
         
     },
     endereco: {
+        rua: String,
+        complementar: String,
         cidade: String,
         uf: String,
         cep: String,
-        numero: String,
+        paisCode: String,
         pais: String
+    },
+    customerId:{
+        type: String,
+        required: true
     },
     dataCadastro: {
         type: Date,
