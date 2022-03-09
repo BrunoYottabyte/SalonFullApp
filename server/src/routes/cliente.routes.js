@@ -24,7 +24,7 @@ router.post("/", async (req, res) => {
       const _id = mongoose.Types.ObjectId();
       //criar Customer
       const { documento, endereco } = cliente;
-        console.log(_id)
+      console.log(_id);
       const pagarmeCustomer = await pagarme("customers", {
         name: cliente.nome,
         email: cliente.email,
@@ -96,16 +96,57 @@ router.post("/", async (req, res) => {
       );
     }
 
-
     await session.commitTransaction();
     session.endSession();
 
-    if(existentCliente && existentRelationship){
-        res.json({ error: true, message: 'Cliente já cadastrado'})
-    }else{
-        res.json({error: false})
+    if (existentCliente && existentRelationship) {
+      res.json({ error: true, message: "Cliente já cadastrado" });
+    } else {
+      res.json({ error: false });
     }
+  } catch (err) {
+    res.json({ error: true, message: err.message });
+  }
+});
 
+router.post("/filter", async (req, res) => {
+  try {
+    const clientes = await Cliente.find(req.body.filters);
+    res.json({ error: false, clientes });
+  } catch (err) {
+    res.json({ error: true, message: err.message });
+  }
+});
+
+router.get("/salao/:salaoId", async (req, res) => {
+  try {
+    const { salaoId } = req.params;
+    const clientes = await SalaoCliente.findOne({
+      salaoId,
+      status: { $ne: "E" },
+    })
+      .populate("clienteId")
+      .select("clienteId dataCadastro");
+
+    res.json({
+      error: false,
+      clientes: [clientes].map((vinculo) => ({
+        ...vinculo.clienteId._doc,
+        vinculoId: vinculo._id,
+        dataCadastro: vinculo.dataCadastro,
+      })),
+    });
+  } catch (err) {
+    res.json({ error: true, message: err.message });
+  }
+});
+
+router.delete("/vinculo/:id", async (req, res) => {
+  try {
+    await SalaoCliente.findByIdAndUpdate(req.params.id, {
+      status: "E",
+    });
+    res.json({ error: false });
   } catch (err) {
     res.json({ error: true, message: err.message });
   }
