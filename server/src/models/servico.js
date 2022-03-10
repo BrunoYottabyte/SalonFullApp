@@ -5,7 +5,7 @@ const servico = new Schema({
   salaoId: {
     type: mongoose.Types.ObjectId,
     ref: "Salao",
-    required: true
+    required: true,
   },
   titulo: {
     type: String,
@@ -21,7 +21,7 @@ const servico = new Schema({
     required: true,
   },
   duracao: {
-    type: Number, //Duração em minutos
+    type: Date, //Duração em minutos
     required: true,
   },
   recorrencia: {
@@ -34,9 +34,9 @@ const servico = new Schema({
   },
   status: {
     type: String,
-    enum: ['A', 'I', 'E'],
+    enum: ["A", "I", "E"],
     required: true,
-    default: 'A'
+    default: "A",
   },
   dataCadastro: {
     type: Date,

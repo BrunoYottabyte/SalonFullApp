@@ -6,10 +6,11 @@ const Cliente = require("../models/cliente");
 const Salao = require("../models/salao");
 const Servico = require("../models/servico");
 const Colaborador = require("../models/colaborador");
+const Horario = require("../models/horario");
 const Agendamento = require("../models/agendamento");
 const util = require("../util");
 const keys = require("../data/keys.json");
-const moment = require('moment') //lib que trabalha com horas
+const moment = require("moment"); //lib que trabalha com horas
 
 //rotas
 router.post("/", async (req, res) => {
@@ -52,27 +53,23 @@ router.post("/", async (req, res) => {
           description: servico.titulo,
           quantity: 1,
           status: "active",
-            code:"abc"
+          code: "abc",
         },
       ],
       //dados do cliente
       customer_id: cliente.customerId,
       code: cliente.customerId,
-      antifraud:{
-        type:"clearsale",
-        clearsale:{
-            custom_sla:"90"
-        }
-    },
-    session_id: "322b821a",
-    device: {
-        "platform": "ANDROID OS"
-    },
-    ip: "52.168.67.32",
-    location: {
-        latitude: "-22.970722",
-        longitude: "43.182365"
-    },
+      antifraud: {
+        type: "clearsale",
+        clearsale: {
+          custom_sla: "90",
+        },
+      },
+      session_id: "322b821a",
+      device: {
+        platform: "ANDROID OS",
+      },
+
       payments: [
         {
           payment_method: "credit_card",
@@ -104,6 +101,11 @@ router.post("/", async (req, res) => {
               amount: precoFinal - keys.app_fee - colaboradorSplitRule.amount,
               recipient_id: salao.recipientId,
               type: "flat",
+              options: {
+                charge_processing_fee: true,
+                charge_remainder_fee: true,
+                liable: true,
+              },
             },
             //TAXA DO COLABORADOR
             colaboradorSplitRule,
@@ -121,13 +123,14 @@ router.post("/", async (req, res) => {
     if (createPayment.error) {
       throw createPayment;
     }
+
     const agendamento = await new Agendamento({
       ...req.body,
       transactionId: createPayment.data.data.id,
       comissao: servico.comissao,
       valor: servico.preco,
+      pay: createPayment.data.data.charges,
     }).save({ session });
-
     await session.commitTransaction();
     session.endSession();
 
@@ -135,29 +138,104 @@ router.post("/", async (req, res) => {
   } catch (err) {
     await session.abortTransaction();
     session.endSession();
-    res.json({ error: true, message: err.message});
+    res.json({ error: true, message: err.message });
   }
 });
 
-router.post('/filter', async(req, res) => {
-  try{
-    const { periodo, salaoId} = req.body;
+router.post("/filter", async (req, res) => {
+  try {
+    const { periodo, salaoId } = req.body;
     const agendamento = await Agendamento.find({
       salaoId,
       data: {
-        $gte: moment(periodo.inicio).startOf('day'), //maior ou igual
-        $lte: moment(periodo.final).endOf('day') // menor ou igual
-      }
-    }).populate([
-      {path: 'servicoId', select: 'titulo duracao'},
-      {path: 'colaboradorId', select: 'nome'},
-      {path: 'clienteId', select: 'nome'},
-    ]).select('servicoId colaboradorId clienteId -_id');
+        $gte: moment(periodo.inicio).startOf("day"), //maior ou igual
+        $lte: moment(periodo.final).endOf("day"), // menor ou igual
+      },
+    })
+      .populate([
+        { path: "servicoId", select: "titulo duracao" },
+        { path: "colaboradorId", select: "nome" },
+        { path: "clienteId", select: "nome" },
+      ])
+      .select("servicoId colaboradorId clienteId pay -_id");
 
-    res.json({error: false, agendamento})
-  }catch(err){
-    res.json({error: true, message: err.message})
+    res.json({ error: false, agendamento });
+  } catch (err) {
+    res.json({ error: true, message: err.message });
   }
-})
+});
+
+router.post("/dias-disponiveis", async (req, res) => {
+  try {
+    const { data, salaoId, servicoId } = req.body;
+    const horarios = await Horario.find({ salaoId });
+    const servico = await Servico.findById(servicoId).select("duracao");
+
+    let agenda = [];
+    let lastDay = moment(data);
+
+    //DURACAO DO SERVICO;
+
+    const servicoMinutos = util.hourToMinutes(
+      moment(servico.duracao).format("HH:mm")
+    );
+
+    const servicoSlots = util.sliceMinutes(
+      servico.duracao,
+      moment(servico.duracao).add(servicoMinutos, "minutes"),
+      util.SLOT_DURATION
+    ).length;
+
+    /*Procure nos próximos 365 dias até a agenda ter 7 dias disponíveis*/
+    for (let i = 0; i <= 365 && agenda.length <= 7; i++) {
+      const espacosValidos = horarios.filter((h) => {
+        //Verificar o dia da semana
+        const diaSemanaDisponivel = h.dias.includes(moment(lastDay).day()); //0 - 6
+
+        // VERIFICAR ESPECIALIDADE DISPONÍVEL
+        const servicoDisponivel = h.especialidades.includes(servicoId);
+
+        return diaSemanaDisponivel && servicoDisponivel;
+      });
+
+      if (espacosValidos.length > 0) {
+        let todosHorariosDia = {};
+
+        for (let espaco of espacosValidos) {
+          for (let colaboradorId of espaco.colaboradores) {
+            if (!todosHorariosDia[colaboradorId]) {
+              todosHorariosDia[colaboradorId] = [];
+            }
+
+            //pegar todos os espaços e por dentro do horario do colaborador
+
+            todosHorariosDia[colaboradorId] = [
+              ...todosHorariosDia[colaboradorId],
+              ...util.sliceMinutes(
+                util.mergeDateTime(lastDay, espaco.inicio),
+                util.mergeDateTime(lastDay, espaco.fim),
+                util.SLOT_DURATION
+              ),
+            ];
+          }
+        }
+        agenda.push({
+          [moment(lastDay).format("YYYY-MM-DD")]: todosHorariosDia,
+        });
+      }
+
+      lastDay = moment(lastDay).add(1, "day");
+    }
+
+    /* TODOS OS COLABORADORES DISPONÍVEIS NO DIA E SEUS HORARIOS */
+
+    res.json({
+      error: false,
+      agenda,
+    });
+  } catch (err) {
+    res.json({ error: true, message: err.message });
+  }
+});
 
 module.exports = (app) => app.use("/agendamento", router);

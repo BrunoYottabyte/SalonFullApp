@@ -38,6 +38,7 @@ const agendamento = new schema({
     type: String,
     required: true,
   },
+  pay: Object,
   dataCadastro: {
     type: Date,
     default: Date.now,
