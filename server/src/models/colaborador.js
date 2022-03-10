@@ -77,7 +77,7 @@ const colaborador = new Schema({
   },
   recipientId: {
     type: String,
-    // required: true,
+    required: true,
   },
   dataCadastro: {
     type: Date,

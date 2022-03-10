@@ -9,12 +9,12 @@ const api = axios.create({
   },
 });
 
-module.exports = async (endpoint, data) => {
+module.exports = async(endpoint, data) => {
   try {
     const response = await api.post(endpoint, data);
-
     return { error: false, data: response };
   } catch (err) {
+    console.log(err.response.data)
     return {
       error: true,
       message: err.message,

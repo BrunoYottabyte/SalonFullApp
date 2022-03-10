@@ -57,11 +57,10 @@ router.post("/", async (req, res) => {
       if (pagarmeBankAccount.error) {
         throw pagarmeBankAccount;
       }
-
       //Criando colaborador
       newColaborador = await Colaborador({
         ...colaborador,
-        recipientId: pagarmeBankAccount.data.id,
+        recipientId: pagarmeBankAccount.data.data.id,
       }).save({ session });
     }
 

@@ -32,6 +32,9 @@ const salao = new Schema({
     dataCadastro: {
         type: Date,
         default: Date.now,
+    },
+    recipientId: {
+        type: String,
     }
 });
 
