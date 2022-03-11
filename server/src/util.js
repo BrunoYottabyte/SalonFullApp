@@ -22,10 +22,10 @@ module.exports = {
     end = moment(end);
     while (end > start) {
       slices.push(start.format("HH:mm"));
-
       start = start.add(duration, "minutes");
       count++;
     }
+
     return slices;
   },
   mergeDateTime: (date, time) => {
@@ -33,5 +33,18 @@ module.exports = {
       "HH:mm"
     )}`;
     return merged;
+  },
+
+  splitByValue: (array, value) => {
+    let newArray = [[]];
+
+    array.forEach((item) => {
+      if (item !== value) {
+        newArray[newArray.length - 1].push(item);
+      } else {
+        newArray.push([]);
+      }
+    });
+    return newArray;
   },
 };

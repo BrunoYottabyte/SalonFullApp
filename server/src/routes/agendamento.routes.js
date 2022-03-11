@@ -12,6 +12,8 @@ const util = require("../util");
 const keys = require("../data/keys.json");
 const moment = require("moment"); //lib que trabalha com horas
 
+const _ = require("lodash");
+
 //rotas
 router.post("/", async (req, res) => {
   const db = mongoose.connection;
@@ -172,6 +174,7 @@ router.post("/dias-disponiveis", async (req, res) => {
     const servico = await Servico.findById(servicoId).select("duracao");
 
     let agenda = [];
+    let colaboradores = [];
     let lastDay = moment(data);
 
     //DURACAO DO SERVICO;
@@ -234,6 +237,7 @@ router.post("/dias-disponiveis", async (req, res) => {
             .populate("servicoId", "duracao");
 
           //Recuperar horarios agendados
+
           let horariosOcupados = agendamento.map((agendamento) => ({
             inicio: moment(agendamento.data),
             final: moment(agendamento.data).add(
@@ -250,29 +254,73 @@ router.post("/dias-disponiveis", async (req, res) => {
             )
             .flat();
 
-          //   //removendo TODOS OS HORARIOS / SLOTS OCUPADOS
+          //removendo TODOS OS HORARIOS / SLOTS OCUPADOS
 
-          todosHorariosDia[colaboradorId] = todosHorariosDia[colaboradorId].map(
-            (horarioLivre) => {
-              return horariosOcupados.includes(horarioLivre)
-                ? '-'
-                : horarioLivre;
-            }
+          todosHorariosDia[colaboradorId] = util
+            .splitByValue(
+              todosHorariosDia[colaboradorId].map((horarioLivre) => {
+                return horariosOcupados.includes(horarioLivre)
+                  ? "-"
+                  : horarioLivre;
+              }),
+              "-"
+            )
+            .filter((space) => space.length > 0);
+          // .flat();
+
+          //VERIFICANDO SE EXISTE ESPAÇO SUFICIENTE NO SLOT;
+          let horariosLivres = todosHorariosDia[colaboradorId].filter(
+            (horarios) => horarios.length >= servicoSlots
           );
-        }
 
-        agenda.push({
-          [moment(lastDay).format("YYYY-MM-DD")]: todosHorariosDia,
-        });
+          /*VERIFIANDO SE OS HORÁRIOS DENTRO DO SLOT TEM A CONTINUIDADE NECESSÁRIA */
+          horariosLivres = horariosLivres
+            .map((slot) =>
+              slot.filter(
+                (horario, index) => slot.length - index >= servicoSlots
+              )
+            )
+            .flat();
+          //FORMATANDO HORARIO DE 2 EM 2
+          horariosLivres = _.chunk(horariosLivres, 2);
+          //REMOVER COLABORADOR CASO NÃO HAJA NENHUM ESPAÇO
+          if (horariosLivres.length === 0) {
+            todosHorariosDia = _.omit(todosHorariosDia, colaboradorId);
+          } else {
+            todosHorariosDia[colaboradorId] = horariosLivres;
+          }
+        }
+        //VERIFICAR SE TEM ESPECIALISTA DISPONIVEL NAQUELE DIA
+        const totalEspecialistas = Object.keys(todosHorariosDia).length;
+        if (totalEspecialistas > 0) {
+          colaboradores.push(Object.keys(todosHorariosDia));
+          agenda.push({
+            [moment(lastDay).format("YYYY-MM-DD")]: todosHorariosDia,
+          });
+        }
       }
 
       lastDay = moment(lastDay).add(1, "day");
     }
+    //RECUPERANDO DADOS DO COLABORADOR
+    colaboradores = colaboradores.flat();
+
+    colaboradores = await Colaborador.find({
+      _id: { $in: colaboradores },
+    }).select("nome foto");
+
+    colaboradores = colaboradores.map((c) => ({
+      ...c._doc,
+      nome: c.nome.split(" ")[0],
+    }));
+
+    console.log(colaboradores);
 
     /* TODOS OS COLABORADORES DISPONÍVEIS NO DIA E SEUS HORARIOS */
 
     res.json({
       error: false,
+      colaboradores: _.uniq(colaboradores),
       agenda,
     });
   } catch (err) {
