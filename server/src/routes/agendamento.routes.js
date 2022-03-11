@@ -219,6 +219,48 @@ router.post("/dias-disponiveis", async (req, res) => {
             ];
           }
         }
+
+        //OCUPACAO DE CADA ESPECIALISTA NO DIA
+        for (let colaboradorId of Object.keys(todosHorariosDia)) {
+          //Recuperar agendamentos
+          const agendamento = await Agendamento.find({
+            colaboradorId,
+            data: {
+              $gte: moment(lastDay).startOf("day"),
+              $lte: moment(lastDay).endOf("day"),
+            },
+          })
+            .select("data servicoId -_id")
+            .populate("servicoId", "duracao");
+
+          //Recuperar horarios agendados
+          let horariosOcupados = agendamento.map((agendamento) => ({
+            inicio: moment(agendamento.data),
+            final: moment(agendamento.data).add(
+              util.hourToMinutes(
+                moment(agendamento.servicoId.duracao).format("HH:mm")
+              ),
+              "minutes"
+            ),
+          }));
+
+          horariosOcupados = horariosOcupados
+            .map((h) =>
+              util.sliceMinutes(h.inicio, h.final, util.SLOT_DURATION)
+            )
+            .flat();
+
+          //   //removendo TODOS OS HORARIOS / SLOTS OCUPADOS
+
+          todosHorariosDia[colaboradorId] = todosHorariosDia[colaboradorId].map(
+            (horarioLivre) => {
+              return horariosOcupados.includes(horarioLivre)
+                ? '-'
+                : horarioLivre;
+            }
+          );
+        }
+
         agenda.push({
           [moment(lastDay).format("YYYY-MM-DD")]: todosHorariosDia,
         });
