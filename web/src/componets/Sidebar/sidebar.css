@@ -1,0 +1,63 @@
+.logo{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #f0f0f0;
+    font-size: 2rem;
+}
+.logoCss{
+    background-color: #7b2cbf;
+    padding: 0 5px;
+    color: #f0f0f0;
+    font-size: 0.65rem;
+    position: relative;
+    z-index: 999;
+    top: 5px;
+    margin: -5px;
+    border-radius: 3px;
+}
+
+section {
+    background-color: var(--dark);
+}
+
+section ul li {
+    list-style: none;
+    width: 100%;
+}
+
+section ul li a {
+    width: 100%;
+    color: #fff;
+    opacity: 0.6;
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    margin: 2.5px 0;
+    transition: 0.5s;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+
+section ul li a.active {
+    opacity: 1;
+    background-color: rgba(0,0,0,0.6);
+}
+
+section ul li a span.mdi{
+    margin-right: 5px;
+}
+
+section ul li a.active .mdi{
+    color: var(--primary)
+}
+
+section ul li a:visited, section ul li a:focus{
+   color: #fff;
+}
+
+section ul li a:hover{
+    background-color: rgba(0,0,0,0.6);
+    opacity: 1;
+}

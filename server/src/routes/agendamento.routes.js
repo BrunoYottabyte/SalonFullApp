@@ -159,7 +159,7 @@ router.post("/filter", async (req, res) => {
         { path: "colaboradorId", select: "nome" },
         { path: "clienteId", select: "nome" },
       ])
-      .select("servicoId colaboradorId clienteId pay -_id");
+      .select("servicoId colaboradorId clienteId pay data -_id");
 
     res.json({ error: false, agendamento });
   } catch (err) {
