@@ -2,11 +2,16 @@ import "rsuite/dist/rsuite.min.css";
 import { Table } from "rsuite";
 import { HeaderCell, Column, Cell } from "rsuite-table";
 
-const TableComponent = ({ data, config, actions, onRowClick }) => {
+const TableComponent = ({ data, config, actions, onRowClick, loading }) => {
   return (
-    <Table height={400} data={data} onRowClick={onRowClick}>
-      {config.map((c) => (
-        <Column flexGrow={!c.width ? 1 : 0} width={c.width} fixed={c.fixed}>
+    <Table loading={loading} height={400} data={data} onRowClick={onRowClick}>
+      {config.map((c, i) => (
+        <Column
+          key={i}
+          flexGrow={!c.width ? 1 : 0}
+          width={c.width}
+          fixed={c.fixed}
+        >
           <HeaderCell>{c.label}</HeaderCell>
           {!c.content ? (
             <Cell dataKey={c.key} />
