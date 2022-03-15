@@ -22,6 +22,7 @@ export function* allClientes() {
       alert(res.message);
       return false;
     }
+    console.log(res.clientes);
     yield put(updateCliente({ clientes: res.clientes }));
   } catch (err) {
     yield put(updateCliente({ form: { ...form, filtering: false } }));
@@ -64,12 +65,12 @@ export function* filterClientes() {
 }
 
 export function* addCliente() {
-  const { form, cliente } = yield select((state) => state.cliente);
+  const { form, cliente, components } = yield select((state) => state.cliente);
   try {
     yield put(updateCliente({ form: { ...form, saving: true } }));
     const { data: res } = yield call(api.post, `/cliente`, {
       salaoId: consts.salaoId,
-      cliente: { ...cliente, paisCode: "55", pais: "BR" },
+      cliente: { ...cliente },
     });
 
     yield put(updateCliente({ form: { ...form, saving: false } }));
@@ -84,7 +85,38 @@ export function* addCliente() {
     yield put(resetCliente());
   } catch (err) {
     yield put(updateCliente({ form: { ...form, saving: false } }));
-    alert(err.message);
+    alert("catch", err.message);
+  }
+}
+
+export function* unlinkCliente() {
+  const { form, cliente, components } = yield select((state) => state.cliente);
+  console.log(cliente);
+  try {
+    yield put(updateCliente({ form: { ...form, saving: true } }));
+    const { data: res } = yield call(
+      api.delete,
+      `/cliente/vinculo/${cliente.vinculoId}`
+    );
+
+    yield put(updateCliente({ form: { ...form, saving: false } }));
+
+    if (res.error) {
+      alert(res.message);
+      return false;
+    }
+
+    yield put(allClientesAction());
+    yield put(
+      updateCliente({
+        components: { ...components, drawer: false, confirmDelete: false },
+      })
+    );
+
+    yield put(resetCliente());
+  } catch (err) {
+    yield put(updateCliente({ form: { ...form, saving: false } }));
+    alert("catch", err.message);
   }
 }
 
@@ -92,4 +124,5 @@ export default all([
   takeLatest(types.ALL_CLIENTES, allClientes),
   takeLatest(types.FILTER_CLIENTES, filterClientes),
   takeLatest(types.ADD_CLIENTE, addCliente),
+  takeLatest(types.UNLINK_CLIENTE, unlinkCliente),
 ]);

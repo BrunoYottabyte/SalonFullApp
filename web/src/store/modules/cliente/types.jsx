@@ -4,6 +4,7 @@ const types = {
   FILTER_CLIENTES: "@cliente/FILTER",
   ADD_CLIENTE: "@cliente/ADD",
   RESET_CLIENTE: "@cliente/RESET",
+  UNLINK_CLIENTE: "@cliente/UNLINK",
 };
 
 export default types;

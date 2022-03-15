@@ -21,12 +21,12 @@ const INITIAL_STATE = {
     telefone: "",
     area: "",
     dataNascimento: "",
-    sexo: "",
+    sexo: "M",
     status: "",
     documento: {
-      tipo: "",
+      tipo: "individual",
       numero: "",
-      docType: "",
+      docType: "CPF",
     },
     endereco: {
       rua: "",

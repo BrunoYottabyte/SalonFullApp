@@ -1,13 +1,14 @@
 import { useEffect } from "react";
 import "./clientes.css";
 import TableComponent from "../../componets/Table";
-import { Button, Drawer } from "rsuite";
+import { Button, Drawer, Modal } from "rsuite";
 import {
   allClientes,
   updateCliente,
   filterClientes,
   resetCliente,
   addCliente,
+  unlinkCliente,
 } from "../../store/modules/cliente/actions";
 import util from "../../util";
 import { useDispatch, useSelector } from "react-redux";
@@ -29,12 +30,20 @@ const Clientes = () => {
   const setCliente = (key, value) => {
     dispatch(
       updateCliente({
-        cliente: { ...cliente, [key]: value },
+        cliente: {
+          ...cliente,
+          [key]: value,
+        },
       })
     );
   };
+
   const save = () => {
     dispatch(addCliente());
+  };
+
+  const deleteCliente = () => {
+    dispatch(unlinkCliente());
   };
 
   useEffect(() => {
@@ -109,7 +118,7 @@ const Clientes = () => {
                 className="form-control"
                 placeholder="Sexo"
                 disabled={form.disabled}
-                value={cliente.sexo === "M"}
+                value={cliente.sexo}
                 onChange={(e) => setCliente("sexo", e.target.value)}
               >
                 <option value="M">Masculino</option>
@@ -155,7 +164,7 @@ const Clientes = () => {
                 }
               >
                 <option value="individual">Individual</option>
-                <option value="corporation">Empresarial</option>
+                <option value="company">Empresarial</option>
               </select>
             </div>
             <div className="form-group my-2 col-6">
@@ -286,8 +295,23 @@ const Clientes = () => {
             loading={form.saving}
             onClick={() => {
               if (behavior === "create") {
+                dispatch(
+                  updateCliente({
+                    cliente: {
+                      ...cliente,
+                      //adicionando manualmente
+                      status: "A",
+                      ["endereco"]: {
+                        ...cliente.endereco,
+                        pais: "BR",
+                        paisCode: "55",
+                      },
+                    },
+                  })
+                );
                 save();
               } else {
+                setComponent("confirmDelete", true);
               }
             }}
           >
@@ -295,6 +319,32 @@ const Clientes = () => {
           </Button>
         </Drawer.Body>
       </Drawer>
+      <Modal
+        open={components.confirmDelete}
+        onClose={() => setComponent("confirmDelete", false)}
+      >
+        <Modal.Body>
+          <h6 className="mdi mdi-trash-can-outline">
+            Tem certeza que deseja excluir? Essa ação é irreversível!
+          </h6>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            loading={form.saving}
+            onClick={() => deleteCliente()}
+            appearance="primary"
+            color="red"
+          >
+            Sim, tenho certeza
+          </Button>
+          <Button
+            onClick={() => setComponent("confirmDelete", false)}
+            appearance="subtle"
+          >
+            Cancel
+          </Button>
+        </Modal.Footer>
+      </Modal>
       <div className="row">
         <div className="col-12">
           <div className="w-100 d-flex justify-content-between">
@@ -341,14 +391,21 @@ const Clientes = () => {
               },
             ]}
             actions={(cliente) => (
-              <Button color="blue" size="xs">
-                Ver {cliente.firstName}
+              <Button
+                appearance="primary"
+                size="xs"
+                onClick={() => {
+                  dispatch(updateCliente({ behavior: "update", cliente }));
+                  setComponent("drawer", true);
+                }}
+              >
+                Ver informações
               </Button>
             )}
-            onRowClick={(cliente) => {
-              dispatch(updateCliente({ behavior: "update", cliente }));
-              setComponent("drawer", true);
-            }}
+            // onRowClick={(cliente) => {
+            //   dispatch(updateCliente({ behavior: "update", cliente }));
+            //   setComponent("drawer", true);
+            // }}
           />
         </div>
       </div>
