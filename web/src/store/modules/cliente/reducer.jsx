@@ -6,6 +6,9 @@ const INITIAL_STATE = {
   components: {
     drawer: false,
     confirmDelete: false,
+    alert: false,
+    messageAlert:
+      "Deseja realmente excluir esse registro? Essa ação é irreversível!",
   },
   form: {
     filtering: false,

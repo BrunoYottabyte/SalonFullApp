@@ -9,15 +9,36 @@ const Sidebar = ({ location }) => {
       </h1>
       <ul className="p-0 m-0">
         <li>
-          <Link to="/" className={location.pathname === '/' ? 'active' : ''}>
+          <Link to="/" className={location.pathname === "/" ? "active" : ""}>
             <span className="mdi mdi-calendar-check"></span>
             <span>Agendamentos</span>
           </Link>
         </li>
         <li>
-          <Link to="/clientes" className={location.pathname === '/clientes' ? 'active' : ''}>
+          <Link
+            to="/clientes"
+            className={location.pathname === "/clientes" ? "active" : ""}
+          >
             <span className="mdi mdi-account-multiple"></span>
-            <span >Clientes</span>
+            <span>Clientes</span>
+          </Link>
+        </li>
+        <li>
+          <Link
+            to="/colaboradores"
+            className={location.pathname === "/colaboradores" ? "active" : ""}
+          >
+            <span className="mdi mdi-account-tie"></span>
+            <span>Colaboradores</span>
+          </Link>
+        </li>
+        <li>
+          <Link
+            to="/horarios"
+            className={location.pathname === "/horarios" ? "active" : ""}
+          >
+            <span className="mdi mdi-clock-outline"></span>
+            <span>Horários</span>
           </Link>
         </li>
       </ul>

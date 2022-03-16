@@ -10,6 +10,7 @@ import Sidebar from "./componets/Sidebar";
 //pages
 import Agendamentos from "./pages/Agendamentos";
 import Clientes from "./pages/Clientes";
+import Colaboradores from "./pages/Colaboradores";
 
 const Routes = () => {
   return (
@@ -20,8 +21,9 @@ const Routes = () => {
           <Router>
             <Sidebar />
             <Switch>
-              <Route path={'/'} exact component={Agendamentos} />
-              <Route path={'/Clientes'} exact component={Clientes} />
+              <Route path={"/"} exact component={Agendamentos} />
+              <Route path={"/Clientes"} exact component={Clientes} />
+              <Route path={"/colaboradores"} exact component={Colaboradores} />
             </Switch>
           </Router>
         </div>

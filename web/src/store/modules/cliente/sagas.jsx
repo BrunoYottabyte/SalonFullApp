@@ -76,7 +76,13 @@ export function* addCliente() {
     yield put(updateCliente({ form: { ...form, saving: false } }));
 
     if (res.error) {
-      alert(res.message);
+      yield put(
+        updateCliente({
+          components: { ...components, messageAlert: res.message },
+        })
+      );
+      // alert(res.message);
+      yield put(allClientesAction());
       return false;
     }
 

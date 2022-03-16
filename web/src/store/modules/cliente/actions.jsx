@@ -15,7 +15,7 @@ export function filterClientes() {
   return { type: types.FILTER_CLIENTES };
 }
 
-export function addCliente(cliente) {
+export function addCliente() {
   return { type: types.ADD_CLIENTE };
 }
 

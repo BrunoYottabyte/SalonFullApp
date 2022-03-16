@@ -69,11 +69,17 @@ router.post("/", async (req, res) => {
     const clienteId = existentCliente ? existentCliente._id : newClient._id;
 
     //Verifica se já existe o relacionamento com o salão
-    const existentRelationship = await SalaoCliente.findOne({
+    const existentRelationship = await SalaoCliente.find({
       salaoId,
       clienteId,
       status: { $ne: "E" },
     });
+    console.log("");
+    console.log("");
+    console.log("");
+    console.log("");
+    console.log(existentRelationship);
+    console.log(existentCliente);
 
     //SE NÃO ESTÁ VINCULADO
     if (!existentRelationship) {

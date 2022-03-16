@@ -307,6 +307,11 @@ const Clientes = () => {
                         paisCode: "55",
                       },
                     },
+                    components: {
+                      ...components,
+                      alert: true,
+                      messageAlert: "Cliente criado com sucesso :)",
+                    },
                   })
                 );
                 save();
@@ -345,6 +350,29 @@ const Clientes = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      <Modal open={components.alert}>
+        <Modal.Body className="d-flex justify-content-center align-items-center">
+          <span
+            className="mdi mdi-alert-outline"
+            style={{ fontSize: "2.2em" }}
+          ></span>
+          <h4 className="mx-3">{components.messageAlert}</h4>
+        </Modal.Body>
+        <Modal.Footer className="mt-3">
+          <Button
+            block
+            loading={form.saving}
+            appearance="primary"
+            color="green"
+            style={{ backgroundColor: "#7b2cbf " }}
+            onClick={() => setComponent("alert", false)}
+          >
+            Entendi :)
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
       <div className="row">
         <div className="col-12">
           <div className="w-100 d-flex justify-content-between">
