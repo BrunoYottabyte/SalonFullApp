@@ -2,7 +2,11 @@ import { all, takeLatest, call, put, select } from "redux-saga/effects";
 import consts from "../../../consts";
 import api from "../../../services/api";
 import types from "./types";
-import { updateColaborador } from "./actions";
+import {
+  updateColaborador,
+  allColaborador as allColaboradorAction,
+  resetColaborador,
+} from "./actions";
 
 export function* allColaborador() {
   try {
@@ -61,16 +65,28 @@ export function* filterColaboradores() {
 }
 
 export function* addColaborador() {
-  const { form, colaborador, components } = yield select(
+  const { form, colaborador, components, behavior } = yield select(
     (state) => state.colaborador
   );
   try {
     yield put(updateColaborador({ form: { ...form, saving: true } }));
-    const { data: res } = yield call(api.post, `/colaborador`, {
-      salaoId: consts.salaoId,
-      colaborador: { ...colaborador },
-      especialidades: [`${consts.servidoId}`],
-    });
+    let res = {};
+    if (behavior === "create") {
+      const response = yield call(api.post, `/colaborador`, {
+        salaoId: consts.salaoId,
+        colaborador: { ...colaborador },
+        especialidades: [`${consts.servidoId}`],
+      });
+      res = response.data;
+    } else {
+      const response = yield call(api.put, `/colaborador/${colaborador._id}`, {
+        vinculo: colaborador.vinculo,
+        vinculoId: colaborador.vinculoId,
+        especialidades: colaborador.especialidades,
+      });
+      res = response.data;
+    }
+
     console.log(res);
     yield put(updateColaborador({ form: { ...form, saving: false } }));
 
@@ -81,18 +97,75 @@ export function* addColaborador() {
         })
       );
       // alert(res.message);
-      //  yield put(allClientesAction());
+      yield put(allColaboradorAction());
       return false;
     }
 
-    //     yield put(allClientesAction());
+    yield put(allColaboradorAction());
     yield put(
       updateColaborador({ components: { ...components, drawer: false } })
     );
-    //     yield put(resetCliente());
+    yield put(resetColaborador());
   } catch (err) {
     yield put(updateColaborador({ form: { ...form, saving: false } }));
     alert("catch", err.message);
+  }
+}
+
+export function* unlinkColaborador() {
+  const { form, colaborador, components } = yield select(
+    (state) => state.colaborador
+  );
+
+  try {
+    yield put(updateColaborador({ form: { ...form, saving: true } }));
+    const { data: res } = yield call(
+      api.delete,
+      `/colaborador/vinculo/${colaborador.vinculoId}`
+    );
+
+    yield put(updateColaborador({ form: { ...form, saving: false } }));
+
+    if (res.error) {
+      alert(res.message);
+      return false;
+    }
+
+    yield put(allColaboradorAction());
+    yield put(
+      updateColaborador({
+        components: { ...components, drawer: false, confirmDelete: false },
+      })
+    );
+
+    yield put(resetColaborador());
+  } catch (err) {
+    yield put(updateColaborador({ form: { ...form, saving: false } }));
+    alert("catch", err.message);
+  }
+}
+
+export function* allServicos() {
+  const { form, colaborador, components } = yield select(
+    (state) => state.colaborador
+  );
+  try {
+    yield put(updateColaborador({ form: { ...form, filtering: true } }));
+    const { data: res } = yield call(
+      api.get,
+      `/salao/servicos/${consts.salaoId}`
+    );
+    yield put(updateColaborador({ form: { ...form, filtering: false } }));
+
+    if (res.error) {
+      alert(res.message);
+      return false;
+    }
+
+    yield put(updateColaborador({ servicos: res.servicos }));
+  } catch (err) {
+    yield put(updateColaborador({ form: { ...form, filtering: false } }));
+    alert(err.message);
   }
 }
 
@@ -100,4 +173,6 @@ export default all([
   takeLatest(types.ALL_COLABORADOR, allColaborador),
   takeLatest(types.FILTER_COLABORADOR, filterColaboradores),
   takeLatest(types.ADD_COLABORADOR, addColaborador),
+  takeLatest(types.UNLINK_COLABORADOR, unlinkColaborador),
+  takeLatest(types.ALL_SERVICOS, allServicos),
 ]);

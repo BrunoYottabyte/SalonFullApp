@@ -33,7 +33,7 @@ export function resetColaborador() {
 
 export function unlinkColaborador() {
   return {
-    type: types.RESET_COLABORADOR,
+    type: types.UNLINK_COLABORADOR,
   };
 }
 

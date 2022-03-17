@@ -1,25 +1,29 @@
 import { useEffect } from "react";
 import "./colaboradores.css";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, Drawer, Modal } from "rsuite";
+import { Button, Drawer, Modal, TagPicker, SelectPicker } from "rsuite";
 import {
   allColaborador,
   updateColaborador,
   resetColaborador,
   filterColaboradores,
   addColaborador,
+  unlinkColaborador,
+  allServicos,
 } from "../../store/modules/colaborador/actions";
 import TableComponent from "../../componets/Table";
 import moment from "moment";
+import bancos from "../../data/bancos.json";
 
 const Colaboradores = () => {
   const dispatch = useDispatch();
 
-  const { form, colaboradores, colaborador, components, behavior } =
+  const { form, colaboradores, colaborador, servicos, components, behavior } =
     useSelector((state) => state.colaborador);
 
   useEffect(() => {
     dispatch(allColaborador());
+    dispatch(allServicos());
   }, []);
 
   const setComponent = (key, state) => {
@@ -40,6 +44,10 @@ const Colaboradores = () => {
 
   const save = () => {
     dispatch(addColaborador());
+  };
+
+  const deleteColaborador = () => {
+    dispatch(unlinkColaborador());
   };
 
   return (
@@ -144,6 +152,35 @@ const Colaboradores = () => {
               />
             </div>
 
+            <h6 className="my-3">Sobre</h6>
+
+            <div className="form-group my-2 col-6">
+              <b className="">Status</b>
+              <select
+                type="text"
+                className="form-control"
+                placeholder="Status do Colaborador"
+                disabled={form.disabled && behavior === "create"}
+                value={colaborador.vinculo}
+                onChange={(e) => setColaborador("vinculo", e.target.value)}
+              >
+                <option value="A">Ativo</option>
+                <option value="I">Inativo</option>
+              </select>
+            </div>
+
+            <div className="form-group my-2 col-12">
+              <b className="">Especialidades</b>
+              <TagPicker
+                size="lg"
+                block
+                data={servicos}
+                disabled={form.disabled && behavior === "create"}
+                value={colaborador.especialidades}
+                onChange={(e) => setColaborador("especialidades", e)}
+              />
+            </div>
+
             <h6 className="my-3">Conta Bancaria</h6>
 
             <div className="form-group my-2 col-6">
@@ -181,16 +218,18 @@ const Colaboradores = () => {
 
             <div className="form-group my-2 col-6">
               <b className="">Banco</b>
-              <input
+              <SelectPicker
                 type="text"
-                className="form-control"
                 placeholder="3 dig - banco"
-                disabled={form.disabled}
+                disabled={form.disabled && behavior === "create"}
                 value={colaborador.contaBancaria.banco}
-                onChange={(e) =>
+                data={bancos}
+                block
+                size="lg"
+                onChange={(banco) =>
                   setColaborador("contaBancaria", {
                     ...colaborador.contaBancaria,
-                    banco: e.target.value,
+                    banco: banco,
                   })
                 }
               />
@@ -281,10 +320,24 @@ const Colaboradores = () => {
               <option value="company">Empresarial</option>
             </select>
           </div> */}
-
+          {behavior === "update" && (
+            <Button
+              block
+              className=" mt-3"
+              color={"blue"}
+              appearance="primary"
+              size="lg"
+              loading={form.saving}
+              onClick={() => {
+                save();
+              }}
+            >
+              Atualizar colaborador
+            </Button>
+          )}
           <Button
             block
-            className=" mt-3"
+            className=" mt-1"
             color={behavior === "create" ? "green" : "red"}
             appearance="primary"
             size="lg"
@@ -293,10 +346,6 @@ const Colaboradores = () => {
               if (behavior === "create") {
                 dispatch(
                   updateColaborador({
-                    // colaborador: {
-                    //   ...colaborador,
-                    //   email: colaborador.email,
-                    // },
                     components: {
                       ...components,
                       alert: true,
@@ -316,6 +365,32 @@ const Colaboradores = () => {
           </Button>
         </Drawer.Body>
       </Drawer>
+      <Modal
+        open={components.confirmDelete}
+        onClose={() => setComponent("confirmDelete", false)}
+      >
+        <Modal.Body>
+          <h6 className="mdi mdi-trash-can-outline">
+            Tem certeza que deseja excluir? Essa ação é irreversível!
+          </h6>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            loading={form.saving}
+            onClick={() => deleteColaborador()}
+            appearance="primary"
+            color="red"
+          >
+            Sim, tenho certeza
+          </Button>
+          <Button
+            onClick={() => setComponent("confirmDelete", false)}
+            appearance="subtle"
+          >
+            Cancel
+          </Button>
+        </Modal.Footer>
+      </Modal>
       <div className="row">
         <div className="col-12">
           <div className="w-100 d-flex justify-content-between">

@@ -15,6 +15,7 @@ const INITIAL_STATE = {
     saving: false,
   },
   colaboradores: [],
+  servicos: [],
   colaborador: {
     nome: "",
     foto: "",
@@ -24,6 +25,7 @@ const INITIAL_STATE = {
     dataNascimento: "",
     sexo: "M",
     status: "A",
+    vinculoId: "",
     pessoa: "individual",
     vinculo: "A",
     especialidades: [],
