@@ -34,6 +34,15 @@ const Sidebar = ({ location }) => {
         </li>
         <li>
           <Link
+            to="/servicos"
+            className={location.pathname === "/servicos" ? "active" : ""}
+          >
+            <span className="mdi mdi-auto-fix"></span>
+            <span>Servicos</span>
+          </Link>
+        </li>
+        <li>
+          <Link
             to="/horarios"
             className={location.pathname === "/horarios" ? "active" : ""}
           >

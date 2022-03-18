@@ -191,9 +191,9 @@ router.get("/salao/:salaoId", async (req, res) => {
     for (let vinculo of salaoColaboradores) {
       const especialidades = await ColaboradorServico.find({
         colaboradorId: vinculo.colaboradorId._id,
-      });
+      }).populate('servicoId');
 
-      listaColaboradores.push({ ...vinculo._doc, especialidades });
+      listaColaboradores.push({ ...vinculo._doc, especialidades: especialidades.map(especialidade => especialidade.servicoId._id )});
     }
 
     res.json({
