@@ -25,12 +25,12 @@ export function resetServico() {
   };
 }
 
-export function removeArquivo() {
-    return {
-      type: types.REMOVE_ARQUIVO,
-    };
-  }
-  
+export function removeArquivo(key) {
+  return {
+    type: types.REMOVE_ARQUIVO,
+    key,
+  };
+}
 
 export function removeServico() {
   return {

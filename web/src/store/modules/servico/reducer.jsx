@@ -1,6 +1,8 @@
 import types from "./types";
 import produce from "immer";
 import moment from "moment";
+import consts from "../../../consts";
+
 const INITIAL_STATE = {
   behavior: "create",
   components: {
@@ -16,13 +18,14 @@ const INITIAL_STATE = {
   },
   servicos: [],
   servico: {
+    salaoId: consts.salaoId,
     titulo: "",
     preco: "",
     comissao: "",
-    duracao: moment('00:30').format('HH:mm'),
+    duracao: moment("2022-03-18T03:30:00Z"),
     recorrencia: "",
     descricao: "",
-    status: 'A',
+    status: "I",
     arquivos: [],
   },
 };

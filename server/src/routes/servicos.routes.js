@@ -107,37 +107,36 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-router.get('/salao/:salaoId', async(req, res) => {
-  try{
+router.get("/salao/:salaoId", async (req, res) => {
+  try {
     let servicosSalao = [];
     const servicos = await Servico.find({
       salaoId: req.params.salaoId,
-      status: {$ne: 'E'},
-    })
+      status: { $ne: "E" },
+    });
 
-    for (let servico of servicos){
+    for (let servico of servicos) {
       const arquivos = await Arquivo.find({
-        model: 'Servico',
-        referenciaId: servico._id
+        model: "Servico",
+        referenciaId: servico._id,
       });
-      servicosSalao.push({...servico._doc, arquivos});
+      servicosSalao.push({ ...servico._doc, arquivos });
     }
 
-    res.json({servicos: servicosSalao})
+    res.json({ servicos: servicosSalao });
+  } catch (err) {
+    res.json({ error: true, message: err.message });
   }
-  catch(err){
-    res.json({error: true, message: err.message})
-  }
-})
+});
 
-router.post("/delete-arquivo", async (req, res) => {
+router.delete("/delete-arquivo/:key", async (req, res) => {
   try {
-    const { id } = req.body;
+    const { key } = req.params;
 
     //excluir aws
-    await aws.deleteFileS3(id);
+    await aws.deleteFileS3(key);
     await Arquivo.findOneAndDelete({
-      caminho: id,
+      caminho: key,
     });
     res.json({ error: false });
   } catch (err) {
