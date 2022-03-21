@@ -129,9 +129,9 @@ router.get("/salao/:salaoId", async (req, res) => {
   }
 });
 
-router.delete("/delete-arquivo/:key", async (req, res) => {
+router.post("/delete-arquivo", async (req, res) => {
   try {
-    const { key } = req.params;
+    const { key } = req.body;
 
     //excluir aws
     await aws.deleteFileS3(key);

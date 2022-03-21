@@ -25,7 +25,7 @@ const INITIAL_STATE = {
     duracao: moment("2022-03-18T03:30:00Z"),
     recorrencia: "",
     descricao: "",
-    status: "I",
+    status: "A",
     arquivos: [],
   },
 };

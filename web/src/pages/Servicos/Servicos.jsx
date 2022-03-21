@@ -209,7 +209,7 @@ const Servicos = () => {
                     components: {
                       ...components,
                       alert: true,
-                      messageAlert: "colaborador criado com sucesso :)",
+                      messageModal: "Serviço criado com sucesso ;)",
                     },
                   })
                 );
@@ -255,7 +255,7 @@ const Servicos = () => {
             className="mdi mdi-alert-outline"
             style={{ fontSize: "2.2em" }}
           ></span>
-          <h4 className="mx-3">{components.messageAlert}</h4>
+          <h4 className="mx-3">{components.messageModal}</h4>
         </Modal.Body>
         <Modal.Footer className="mt-3">
           <Button
