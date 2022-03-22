@@ -1,6 +1,6 @@
 import types from "./types";
 import produce from "immer";
-
+import moment from "moment";
 const INITIAL_STATE = {
   behavior: "create",
   components: {
@@ -19,8 +19,8 @@ const INITIAL_STATE = {
   horarios: [],
   horario: {
     dias: [],
-    inicio: "",
-    fim: "",
+    inicio: moment("2022-03-18T03:00:00Z"),
+    fim: moment("2022-03-18T03:00:00Z"),
     especialidades: [],
     colaboradores: [],
   },
@@ -29,13 +29,13 @@ const INITIAL_STATE = {
 const horario = (state = INITIAL_STATE, action) => {
   switch (action.type) {
     case types.UPDATE_HORARIO: {
-      produce(state, (draft) => {
+      return produce(state, (draft) => {
         draft = { ...draft, ...action.payload };
         return draft;
       });
     }
     case types.RESET_HORARIO: {
-      produce(state, (draft) => {
+      return produce(state, (draft) => {
         draft.horario = INITIAL_STATE.horario;
         return draft;
       });

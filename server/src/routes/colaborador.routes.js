@@ -187,13 +187,17 @@ router.get("/salao/:salaoId", async (req, res) => {
       })
       .select("colaboradorId dataCadastro status");
     // .populate('colaboradorId').select('colaboradorId dataCadastro status')
-
     for (let vinculo of salaoColaboradores) {
       const especialidades = await ColaboradorServico.find({
         colaboradorId: vinculo.colaboradorId._id,
-      }).populate('servicoId');
+      }).populate("servicoId");
 
-      listaColaboradores.push({ ...vinculo._doc, especialidades: especialidades.map(especialidade => especialidade.servicoId._id )});
+      listaColaboradores.push({
+        ...vinculo._doc,
+        especialidades: especialidades.map(
+          (especialidade) => especialidade.servicoId._id
+        ),
+      });
     }
 
     res.json({

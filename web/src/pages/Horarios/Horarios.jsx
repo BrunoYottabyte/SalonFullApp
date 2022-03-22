@@ -1,65 +1,213 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  Button,
-  Drawer,
-  Modal,
-  TagPicker,
-  SelectPicker,
-  DateRangePicker,
-  Uploader,
-  DatePicker,
-  Tag,
-} from "rsuite";
-// import {
-//   allServicos,
-//   updateServico,
-//   resetServico,
-//   addServico,
-//   removeServico,
-//   removeArquivo,
-// } from "../../store/modules/servico/actions";
-import TableComponent from "../../componets/Table";
+import "./horarios.css";
+import { Calendar, momentLocalizer } from "react-big-calendar";
+import { DatePicker, Drawer, TagPicker, Button, Modal } from "rsuite";
+import "react-big-calendar/lib/css/react-big-calendar.css";
 import moment from "moment";
-import consts from "../../consts";
+import "moment/locale/pt-br";
+moment.locale("pt-br");
+import {
+  allHorarios,
+  allServicos,
+  filterColaboradores,
+  resetHorario,
+  updateHorario,
+  addHorario,
+  removeHorario,
+} from "../../store/modules/horarios/actions";
+
+const localizer = momentLocalizer(moment);
 
 const Horarios = () => {
-  // const dispatch = useDispatch();
+  const dispatch = useDispatch();
+  const {
+    horarios,
+    horario,
+    form,
+    components,
+    servicos,
+    behavior,
+    colaboradores,
+  } = useSelector((state) => state.horario);
+  const setComponent = (key, state) => {
+    dispatch(
+      updateHorario({
+        components: { ...components, [key]: state },
+      })
+    );
+  };
 
-  const { form, servico, servicos, components, behavior } = useSelector(
-    (state) => state.servico
-  );
+  const setHorario = (component, state) => {
+    dispatch(
+      updateHorario({
+        horario: { ...horario, [component]: state },
+      })
+    );
+  };
 
-  // useEffect(() => {
-  //   dispatch(allServicos());
-  // }, []);
+  const save = () => {
+    dispatch(addHorario());
+  };
 
-  // const setComponent = (key, state) => {
-  //   dispatch(
-  //     updateServico({
-  //       components: { ...components, [key]: state },
-  //     })
-  //   );
-  // };
+  const deleteHorario = () => {
+    dispatch(removeHorario());
+  };
 
-  // const setServico = (component, state) => {
-  //   dispatch(
-  //     updateServico({
-  //       servico: { ...servico, [component]: state },
-  //     })
-  //   );
-  // };
+  const diasSemanaData = [
+    new Date(2022, 2, 22, 0, 0, 0, 0),
+    new Date(2022, 2, 23, 0, 0, 0, 0),
+    new Date(2022, 2, 24, 0, 0, 0, 0),
+    new Date(2022, 2, 25, 0, 0, 0, 0),
+    new Date(2022, 2, 26, 0, 0, 0, 0),
+    new Date(2022, 2, 27, 0, 0, 0, 0),
+    new Date(2022, 2, 28, 0, 0, 0, 0),
+  ];
 
-  // const save = () => {
-  //   dispatch(addServico());
-  // };
+  const diasDaSemana = [
+    "domingo",
+    "segunda-feira",
+    "terça-feira",
+    "quarta-feira",
+    "quinta-feira",
+    "sexta-feira",
+    "sábado",
+  ];
+  console.log(servicos);
 
-  // const deleteServico = () => {
-  //   dispatch(removeServico());
-  // };
+  const formatEvents = horarios
+    .map((horario, index) =>
+      horario.dias.map((dia) => ({
+        resource: horario,
+        title: `${horario.especialidades.length} espec. e ${horario.colaboradores.length} colab.`,
+        start: new Date(
+          diasSemanaData[dia].setHours(
+            parseInt(moment(horario.inicio).format("HH")),
+            parseInt(moment(horario.inicio).format("mm"))
+          )
+        ),
+        end: new Date(
+          diasSemanaData[dia].setHours(
+            parseInt(moment(horario.fim).format("HH")),
+            parseInt(moment(horario.fim).format("mm"))
+          )
+        ),
+      }))
+    )
+    .flat();
+
+  useEffect(() => {
+    // TODOS OS HORARIOS
+    //TODOS OS SERVICOS
+    dispatch(allHorarios());
+    dispatch(allServicos());
+  }, []);
+
+  useEffect(() => {
+    dispatch(filterColaboradores());
+  }, [horario.especialidades]);
 
   return (
     <div className="col p-5 overflow-auto h-100">
+      <Drawer
+        open={components.drawer}
+        size="sm"
+        onClose={() => {
+          dispatch(resetHorario());
+          setComponent("drawer", false);
+        }}
+      >
+        <Drawer.Body>
+          <h3>
+            {behavior === "create" ? "Criar novo" : "Atualizar"} horário de
+            atendimento
+          </h3>
+          <div className="row mt-4">
+            <h6 className="my-3">Informação Pessoal</h6>
+            <div className="form-group my-2 col-6">
+              <b className="">Dias da semana</b>
+              <TagPicker
+                size="lg"
+                block
+                value={horario.dias}
+                data={diasDaSemana.map((label, value) => ({ label, value }))}
+                onChange={(e) => setHorario("dias", e)}
+              />
+            </div>
+
+            <div className="form-group my-2 col-6">
+              <b className="">Horário Inicial</b>
+              <DatePicker
+                block
+                format="HH:mm"
+                hideMinutes={(min) => ![0, 30].includes(min)}
+                value={new Date(horario.inicio)}
+                onChange={(e) => setHorario("inicio", e)}
+              />
+            </div>
+            <div className="form-group my-2 col-6">
+              <b className="">Horário Final</b>
+              <DatePicker
+                block
+                format="HH:mm"
+                hideMinutes={(min) => ![0, 30].includes(min)}
+                value={new Date(horario.fim)}
+                onChange={(e) => setHorario("fim", e)}
+              />
+            </div>
+            <div className="form-group my-2 col-6">
+              <b className="">Especialidades disponíveis</b>
+              <TagPicker
+                size="lg"
+                block
+                data={servicos}
+                value={horario.especialidades}
+                onChange={(e) => setHorario("especialidades", e)}
+              />
+            </div>
+            <div className="form-group my-2 col-6">
+              <b className="">Colaboradores disponíveis</b>
+              <TagPicker
+                size="lg"
+                block
+                data={colaboradores}
+                value={horario.colaboradores}
+                onChange={(e) => setHorario("colaboradores", e)}
+              />
+            </div>
+          </div>
+          <Button
+            block
+            className=" mt-3"
+            color="green"
+            size="lg"
+            loading={form.saving}
+            appearance="primary"
+            onClick={() => {
+              save();
+            }}
+          >
+            {behavior === "create"
+              ? "Salvar Horário de Atendimento"
+              : "Atualizar Horário de Atendimento"}
+          </Button>
+          {behavior === "update" && (
+            <Button
+              block
+              className=" mt-3"
+              color={"red"}
+              size="lg"
+              appearance="primary"
+              loading={form.saving}
+              onClick={() => {
+                setComponent("confirmDelete", true);
+              }}
+            >
+              Remover Horário de Atendimento
+            </Button>
+          )}
+        </Drawer.Body>
+      </Drawer>
       <Modal
         open={components.confirmDelete}
         onClose={() => setComponent("confirmDelete", false)}
@@ -72,7 +220,7 @@ const Horarios = () => {
         <Modal.Footer>
           <Button
             loading={form.saving}
-            onClick={() => deleteServico()}
+            onClick={() => deleteHorario()}
             appearance="primary"
             color="red"
           >
@@ -86,104 +234,60 @@ const Horarios = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-      <Modal open={components.alert}>
-        <Modal.Body className="d-flex justify-content-center align-items-center">
-          <span
-            className="mdi mdi-alert-outline"
-            style={{ fontSize: "2.2em" }}
-          ></span>
-          <h4 className="mx-3">{components.messageModal}</h4>
-        </Modal.Body>
-        <Modal.Footer className="mt-3">
-          <Button
-            block
-            loading={form.saving}
-            appearance="primary"
-            color="green"
-            style={{ backgroundColor: "#7b2cbf " }}
-            onClick={() => setComponent("alert", false)}
-          >
-            Entendi :)
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
       <div className="row">
         <div className="col-12">
           <div className="w-100 d-flex justify-content-between">
-            <h2 className="mb-4 mt-0">Servicos</h2>
+            <h2 className="mb-4 mt-0">Horários de atendimento</h2>
             <div>
               <button
                 className="btn btn-primary btn-lg"
                 onClick={() => {
                   setComponent("drawer", true);
-                  dispatch(updateServico({ behavior: "create" }));
+                  dispatch(updateHorario({ behavior: "create" }));
                 }}
               >
-                <span className="mdi mdi-plus">Novo Serviço</span>
+                <span className="mdi mdi-plus">Novo Horário</span>
               </button>
             </div>
           </div>
-          <TableComponent
-            loading={form.filtering}
-            data={servicos}
-            config={[
-              {
-                label: "Titulo",
-                key: "titulo",
-                width: 200,
-                fixed: true,
-              },
-              { label: "Descrição", key: "descricao", width: 200 },
-              {
-                label: "Preço",
-                content: (item) => `R$ ${item.preco.toFixed(2)}`,
-                width: 200,
-              },
-              {
-                label: "Comissão",
-                content: (item) => `${item.comissao}%`,
-                width: 200,
-              },
-              {
-                label: "Recorrência (dias)",
-                content: (item) => item.recorrencia,
-                width: 200,
-              },
-              {
-                label: "Duração",
-                content: (item) => moment(item.duracao).format("HH:mm"),
-                width: 200,
-              },
-              {
-                label: "Status",
-                content: (item) => (
-                  <Tag color={item.status === "A" ? "green" : "red"}>
-                    {item.status === "A" ? "Ativo" : "Inativo"}
-                  </Tag>
-                ),
-
-                width: 200,
-              },
-              {
-                label: "Data Cadastro",
-                content: (item) =>
-                  moment(item.dataCadastro).format("YYYY/MM/DD - HH:mm"),
-                width: 200,
-              },
-            ]}
-            actions={(servico) => (
-              <Button
-                appearance="primary"
-                size="xs"
-                onClick={() => {
-                  dispatch(updateServico({ behavior: "update", servico }));
-                  setComponent("drawer", true);
-                }}
-              >
-                Ver informações
-              </Button>
-            )}
+          <Calendar
+            onSelectEvent={(e) => {
+              dispatch(
+                updateHorario({
+                  horario: e.resource,
+                })
+              );
+              dispatch(updateHorario({ behavior: "update" }));
+              setComponent("drawer", true);
+            }}
+            localizer={localizer}
+            toolbar={false}
+            view="week"
+            formats={{
+              dateFormat: "dd",
+              dayFormat: (date, culture, localizer) =>
+                localizer.format(date, "dddd", culture),
+            }}
+            popup
+            selectable
+            onSelectSlot={(slotInfo) => {
+              const { start, end } = slotInfo;
+              dispatch(
+                updateHorario({
+                  behavior: "create",
+                  horario: {
+                    ...horario,
+                    dias: [moment(start).day()],
+                    inicio: start,
+                    fim: end,
+                  },
+                })
+              );
+              setComponent("drawer", true);
+            }}
+            events={formatEvents}
+            date={diasSemanaData[moment().day()]}
+            style={{ height: 600 }}
           />
         </div>
       </div>

@@ -15,11 +15,12 @@ export function* allColaborador() {
       `/colaborador/salao/${consts.salaoId}`
     );
 
-    console.log(res);
     if (res.error) {
       alert(error.message);
       return false;
     }
+
+    console.log(res);
 
     yield put(
       updateColaborador({
